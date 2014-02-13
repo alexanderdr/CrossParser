@@ -30,8 +30,7 @@ public class Main {
             e.printStackTrace();
         }
         script.addScalar("test", testObject);
-        
-        //System.out.println(Pattern.matches("(\\.?\\d+)|(\\d+\\.?\\d+)","1+2"));
+
         //clib.loadOnScript(script);
         CrossLibrary.defaultLibrary.loadOnScript(script);
         
@@ -51,8 +50,9 @@ public class Main {
             }
         }*/
         try{
-            //regression checks..
-            //A good use-case for unit-testing
+            //regression checks...
+            //A good use-case for unit-testing.
+            //It would be nice to move these into a seperate file once there's support for it.
             script.test("check 1:helloThar","Hello thar");
 
             //Checks for math, order of operations, parsing.
