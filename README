@@ -1,0 +1,5 @@
+Just a "simple" recursive descent parser, which produces binary trees.  The binary trees can then be traversed bottom-up to return a value.
+The parser is permissive and has little in the way of error checking, even though it's intended to be used as infix, it's also possible to craft a valid tree with prefix notation.
+It's quite easy to add a "language-level" construct with the .addBinding method, many examples of which are in CrossLibrary.java
+Technically it's turing-complete as it has the ability to create and modify variables, as well as loop.
+It also allows reflection into Java, although the syntax is somewhat awkward.
