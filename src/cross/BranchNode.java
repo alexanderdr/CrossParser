@@ -17,8 +17,8 @@ public class BranchNode extends Node{
     Hashtable<String,Node> lines = new Hashtable<String,Node>();
     
     /** Creates a new instance of BranchNode */
-    public BranchNode(Script scr) {
-        super(scr);
+    public BranchNode(SType type, Script scr) {
+        super(type, scr);
         this.temp = false;
         this.expr = "Branch Node";
         this.weight = 100000;
@@ -50,11 +50,15 @@ public class BranchNode extends Node{
     public boolean full(){
         return false;
     }
-    
-    public void print(){
+
+    public void println() {
+        println(System.out);
+    }
+
+    public void println(java.io.PrintStream out){
         System.out.println("Branch node { " +this);
         for(Node n:lines.values()){
-            CrossTree.rprint(n,0);
+            CrossTree.rprint(n,0,out);
         }
         System.out.println("}");
     }

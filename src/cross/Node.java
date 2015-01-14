@@ -17,52 +17,103 @@ public class Node {
     boolean op, temp;
     Node parent, left, right;
     Script script;
-    public Node(String s,boolean o,Script scr){
-        script = scr;
-        expr = s;
-        op = o;
-        
-        if(script.getToken(s)!=null){
-            weight = script.getToken(s).priority;
-        } else {
-            assert false;
-            //Parsing should never reach here
-        }
+
+    SType type;
+
+    /*public Node(String s,boolean o,Script scr){
+        this(null, s, o, scr);
     }
     
     public Node(String s,int childre,Script scr,boolean op){
-        this(s,op,scr);
+        this(null,s,op,scr);
         children = childre;
     }
     
     public Node(String s,int childre,Script scr){
-        this(s,scr);
+        this(null,s,scr);
         this.children = childre;
-    }
+    }*/
     
-    public Node(String s,Script scr){
+    public Node(String s, Script scr){
+        this((SType)null, s, scr);
+    }
+
+    public Node(SType type, String s, boolean o, Script scr){
+        this.type = type;
+
+        script = scr;
+        expr = s;
+        op = o;
+
+        Token token = null;
+
+        if(script.getToken(s)!=null){
+            //weight = script.getToken(s).priority;
+            token = script.getToken(s);
+        } else {
+            if(type != null && type.getBinding(s) != null && type.getBinding(s).getToken() != null) {
+                token = type.getBinding(s).getToken();
+            } else {
+                assert false;
+            }
+            //probably need to get priority here if we are coming from a type-local operator
+            //Parsing should never reach here
+        }
+        if(token != null) {
+            weight = token.priority;
+            if(token.unary) {
+                children = 1;
+            }
+        }
+    }
+
+    public Node(SType type, String s, boolean o, int weight, int children, Script scr) {
+        this.type = type;
+
+        script = scr;
+        expr = s;
+        op = o;
+
+        this.children = children;
+
+        this.weight = weight;
+    }
+
+    public Node(SType type,String s,int childre,Script scr,boolean op){
+        this(type,s,op,scr);
+        children = childre;
+    }
+
+    public Node(SType type, String s,int children,Script scr){
+        this(type, s, children, scr, false);
+        //this.children = childre;
+    }
+
+    public Node(SType type, String s,Script scr){
         script = scr;
         op = false;
         expr = s;
+        this.type = type;
         if(script.getToken(s)!=null){
             weight = script.getToken(s).priority;
         } else {
-            assert false;
-            //parsing should never reach here
+            //we're parsing a literal of some kind (numeric or variable name)
+
         }
     }
-    
-    public Node(Script scr){
+
+    public Node(SType type, Script scr){
         script = scr;
+        this.type = type;
         this.temp = true;
         expr = "<<undefinedNodeExpr>>";
     }
 
     public void init(String s, boolean o){
+        if(temp==false) System.out.println("Initing non-null node");
         if(script.getToken(s)!=null){
             weight = script.getToken(s).priority;
         }
-        if(temp==false) System.out.println("Initing non-null node");
         expr = s;
         op = o;
         temp = false;
@@ -78,10 +129,23 @@ public class Node {
         weight = n.weight;
         children = n.children;
         temp = false;
+        type = n.type;
+    }
+
+    public void println(java.io.PrintStream out) {
+        out.println(expr);
+    }
+
+    public void print(java.io.PrintStream out) {
+        out.print(expr);
+    }
+
+    public void println(){
+        println(System.out);
     }
 
     public void print(){
-        System.out.println(expr);
+        print(System.out);
     }
 
     public Node insert(Node x){
@@ -90,7 +154,7 @@ public class Node {
         } else {
             if(right!=null){
                 System.out.println("Tried to insert on non-null");
-                x.print();
+                x.println();
                 Thread.dumpStack();
                 return this;
             }
@@ -98,6 +162,24 @@ public class Node {
         }
         x.parent = this;
         return this;
+    }
+
+    public Node reparent(Node other) {
+        if(other.parent != null) {
+            if(other.parent.left == other) {//this is not particularly pretty
+                other.parent.left = this;
+            } else {
+                other.parent.right = this;
+            }
+        }
+        parent = other.parent;
+        insert(other);
+
+        return this;
+    }
+
+    public SType getType() {
+        return type;
     }
 
     public boolean full(){
@@ -108,17 +190,15 @@ public class Node {
         return count>=children;
     }
     
-    public Node takeLesserChild(){
+    public Node getLesserChild(){
         if(children==0){
             return null;
         }
         if(children==1){
             Node temp = left;
-            left = null;
             return temp;
         } else {
             Node temp = right;
-            right = null;
             return temp;
         }
     }

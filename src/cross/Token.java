@@ -35,5 +35,34 @@ public class Token {
         this(s,pri,drop,un);
         this.displace = displace;
     }
-    
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public String getString() {
+        return str;
+    }
+
+    public boolean couldMatch(String other) {
+
+        int charsToTest = Math.min(str.length(), other.length());
+
+        for(int i = 0; i < charsToTest; i++) {
+            if(other.charAt(i) != str.charAt(i)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    public boolean exactMatch(String other) {
+        return str.equals(other);
+    }
+
+    public int length() {
+        return str.length();
+    }
 }

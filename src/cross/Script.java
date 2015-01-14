@@ -30,14 +30,22 @@ public class Script {
     
     public CrossTree exec(String s){
         CrossTree ct = cp.parse(s);
-        new Evaluator(cp.master.head,this).eval();
+        try {
+            new Evaluator(cp.master.head, this).eval();
+        } catch (EvalException ee) {
+            ee.printStackTrace();
+            ct.print(System.err);
+            ct.inprint(System.err);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return ct;
     }
 
     //For regression checks
     public void test(String s,String check){
         checker = "0000000";
-        CrossTree temp= null;
+        CrossTree temp = null;
         try{
             temp = exec(s);
         } catch (Exception e){
@@ -54,12 +62,25 @@ public class Script {
             }
         } else {
             //If we want verbose regression checks
-            //System.out.println("Check passed for ["+s+"] ["+check+"]");
+            System.out.println("Check passed for ["+s+"] ["+check+"]");
         }
     }
     
     public void loadLibrary(CrossLibrary c){
         //NYI
+    }
+
+    public void addType(SType type) {
+        lang.addType(type);
+    }
+
+    public SType getCandidateType(char c) {
+        for(SType t : lang.getTypes()) {
+            if(t.matches(c)) {
+                return t;
+            }
+        }
+        return null;
     }
     
     public void addScalar(String s,Scalar scal){
@@ -108,5 +129,13 @@ public class Script {
     
     public ArrayList<Token> getPossibleTokens(char c){
         return getPossibleTokens(c+"");
+    }
+
+    public SType getSymbolType() {
+        return lang.getSymbolType();
+    }
+
+    public SType getOpType() {
+        return lang.getOpType();
     }
 }

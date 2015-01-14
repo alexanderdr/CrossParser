@@ -10,7 +10,9 @@ package cross;
  * @author Dar
  */
 public abstract class BinaryBinding extends Binding{
-    
+
+    SType left, right, returns;
+
     /** Creates a new instance of BinaryBinding */
     public BinaryBinding(Script script) {
         super(script);
@@ -18,7 +20,25 @@ public abstract class BinaryBinding extends Binding{
     
     public BinaryBinding(){
     }
-    
+
+    public BinaryBinding(SType returns) {
+        this.returns = returns;
+    }
+
+    @Override
+    public void registerOwningType(SType owning) {
+        if(returns == null){
+            returns = owning;
+        } else {
+            assert false; //unlikely to be common, but just to be sure (with the test cases...)
+        }
+    }
+
+    @Override
+    public SType getReturnType() {
+        return returns;
+    }
+
     public abstract Scalar eval(Scalar left, Scalar right, Scalar.Type type);
     
     @Override

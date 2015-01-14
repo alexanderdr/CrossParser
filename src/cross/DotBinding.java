@@ -51,7 +51,8 @@ public class DotBinding extends BinaryBinding{
             if(type==Scalar.Type.STRING){
                 left = lefts.getString();
             } else {
-                left = script.getScalar(lefts.getString()).getObject();
+                Scalar tscalar = script.getScalar(lefts.getString());
+                left = tscalar.getObject();
             }
         }else if((type==Scalar.Type.STRING)||(type==Scalar.Type.JAVACLASS)){
             left = lefts.getString();

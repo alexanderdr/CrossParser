@@ -34,6 +34,16 @@ public class Evaluator {
         }
         
         if(b==null){
+
+            //if n is an op, we should try and find a binding
+            if(n.op) {
+                if(n.left!=null) {
+                    SType t = n.left.getType();
+                    TokenBinding tb = t.getBinding(n.expr);
+                    return tb.getBinding().exec(n, this, type);
+                }
+            }
+
             if(n instanceof BranchNode){
                 return Scalar.buildScalar(n,script); //magic scalar
             } else {

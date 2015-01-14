@@ -19,43 +19,136 @@ public class CrossLibrary {
     
     public static CrossLibrary defaultLibrary = new CrossLibrary();
     static {
-        defaultLibrary.addBinding(",",-10,true,false,true,new BinaryBinding(){
-            public Scalar exec(Node n, Evaluator e,Scalar.Type type){
-                Scalar left = null, right = null;
-                if(n.left != null){
-                    left = e.exec(n.left,Scalar.Type.NONE);
-                }   
-                if(n.right != null){
-                    right = e.exec(n.right,Scalar.Type.NONE);
-                }
 
-                if(n.left.weight>-10){ //This hack checks to see if there were parentheses around the list during the binding
-                    return eval(left,right,type,false);
-                } else {
-                    return eval(left,right,type,true);
-                }
-            }
-            public Scalar eval(Scalar left, Scalar right, Scalar.Type type,boolean append){
-                if(left instanceof SList){
-                    if(append){
-                        ((SList)left).append(right);
-                        return left;
-                    } else {
-                        return new SList(left,right,script);
-                    }
-                } else {
-                    return new SList(left,right,script);
-                }
-            }
+        TNumber numeric = new TNumber();
+
+        numeric.addBinding("<",0,new BinaryBinding(){
             public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
-                if(left instanceof SList){
-                    ((SList)left).append(right);
-                    return left;
+                if((left instanceof SInt)&&(right instanceof SInt)){
+                    return new SBool(left.getInt()<right.getInt(),script);
                 } else {
-                    return new SList(left,right,script);
+                    return new SBool(left.getFloat()<right.getFloat(),script);
                 }
             }
         });
+        numeric.addBinding("<=",0,new BinaryBinding(){
+            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
+                if((left instanceof SInt)&&(right instanceof SInt)){
+                    return new SBool(left.getInt()<=right.getInt(),script);
+                } else {
+                    return new SBool(left.getFloat()<=right.getFloat(),script);
+                }
+            }
+        });
+        numeric.addBinding("==",0,new BinaryBinding(){
+            public Scalar eval(Scalar left,Scalar right, Scalar.Type type){
+                if((left.type==Scalar.Type.JAVAOBJECT)||(left.type==Scalar.Type.JAVAOBJECT)){
+                    return new SBool(left.getObject().equals(right.getObject()),script);
+                } else {
+                    return new SBool(left.equals(right),script);
+                }
+            }
+        });
+
+        numeric.addBinding("+",10,new BinaryBinding(numeric){
+            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
+                if((left.type==Scalar.Type.INT)&&(right.type==Scalar.Type.INT)){
+                    return Scalar.buildScalar(left.getInt()+right.getInt(),script);
+                } else if((left.type==Scalar.Type.STRING)||(right.type==Scalar.Type.STRING)){
+                    Scalar temp = Scalar.buildScalar('\"'+left.getString()+right.getString(),script);
+                    return temp;
+                } else {
+                    return Scalar.buildScalar(left.getFloat()+right.getFloat(),script);
+                }
+            }
+        });
+
+        numeric.addBinding("-",10,new BinaryBinding(numeric){
+            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
+                if((left.type==Scalar.Type.INT)&&(right.type==Scalar.Type.INT)){
+                    return Scalar.buildScalar(left.getInt()-right.getInt(),script);
+                } else {
+                    return Scalar.buildScalar(left.getFloat()-right.getFloat(),script);
+                }
+            }
+        });
+
+        numeric.addBinding("*",20,new BinaryBinding(numeric){
+            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
+                if((left instanceof SInt)&&(right instanceof SInt)){
+                    return Scalar.buildScalar(left.getInt()*right.getInt(),script);
+                } else {
+                    return Scalar.buildScalar(left.getFloat()*right.getFloat(),script);
+                }
+            }
+        });
+
+        numeric.addBinding("/",20,new BinaryBinding(numeric){
+            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
+                if((left instanceof SInt)&&(right instanceof SInt)&&(left.getInt()%right.getInt()==0)){
+                    return Scalar.buildScalar(left.getInt()/right.getInt(),script);
+                } else {
+                    Scalar s = Scalar.buildScalar(left.getFloat()/right.getFloat(),script);
+                    return s;
+                }
+            }
+        });
+
+        numeric.addBinding("**",30,new BinaryBinding(numeric){
+            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
+                return Scalar.buildScalar((float)Math.pow((double)left.getFloat(),(double)right.getFloat()),script);
+            }
+        });
+
+
+
+        //symbol.addBinding(".",500,new DotBinding());
+
+        defaultLibrary.addType(new TGrouping());
+        defaultLibrary.addType(new TBlock());
+        defaultLibrary.addType(numeric);
+        defaultLibrary.addType(new TString());
+        //defaultLibrary.addType(symbol);
+
+                defaultLibrary.addBinding(",", -10, true, false, true, new BinaryBinding() {
+                    public Scalar exec(Node n, Evaluator e, Scalar.Type type) {
+                        Scalar left = null, right = null;
+                        if (n.left != null) {
+                            left = e.exec(n.left, Scalar.Type.NONE);
+                        }
+                        if (n.right != null) {
+                            right = e.exec(n.right, Scalar.Type.NONE);
+                        }
+
+                        if (n.left.weight > -10) { //This hack checks to see if there were parentheses around the list during the binding
+                            return eval(left, right, type, false);
+                        } else {
+                            return eval(left, right, type, true);
+                        }
+                    }
+
+                    public Scalar eval(Scalar left, Scalar right, Scalar.Type type, boolean append) {
+                        if (left instanceof SList) {
+                            if (append) {
+                                ((SList) left).append(right);
+                                return left;
+                            } else {
+                                return new SList(left, right, script);
+                            }
+                        } else {
+                            return new SList(left, right, script);
+                        }
+                    }
+
+                    public Scalar eval(Scalar left, Scalar right, Scalar.Type type) {
+                        if (left instanceof SList) {
+                            ((SList) left).append(right);
+                            return left;
+                        } else {
+                            return new SList(left, right, script);
+                        }
+                    }
+                });
         
         defaultLibrary.addBinding("load ",-25,true,true,new BinaryBinding(){
             public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
@@ -106,7 +199,7 @@ public class CrossLibrary {
             }
         });
         
-        defaultLibrary.addBinding("print ",-25,true,true,new BinaryBinding(){
+        defaultLibrary.addBinding("println ",-25,true,true,new BinaryBinding(){
             public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
                 System.out.print(left.getString());
                 return Scalar.nullScalar();
@@ -174,6 +267,10 @@ public class CrossLibrary {
                     ((SObject)left).set(right);
                     return left;
                 }
+                if(left == null) {
+                    //throw an exception with information, because we're about to throw one anyway
+                    throw new EvalException("Null left-hand value when parsing \"=\"");
+                }
                 if(left.type == Scalar.Type.SYMBOL){
                     script.addScalar(left.getString(), right);
                     return right;
@@ -193,7 +290,8 @@ public class CrossLibrary {
                 return eval(left,right,type);
             }
         });
-        defaultLibrary.addBinding("<",0,new BinaryBinding(){
+
+        /*defaultLibrary.addBinding("<",0,new BinaryBinding(){
             public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
                 if((left instanceof SInt)&&(right instanceof SInt)){
                     return new SBool(left.getInt()<right.getInt(),script);
@@ -253,20 +351,6 @@ public class CrossLibrary {
                 }
             }
         });
-
-        //Null/implicit token binding.
-        defaultLibrary.addBinding("<<notok>>",20,new BinaryBinding(){
-            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
-                if(left.type==Scalar.Type.LIST&&right.type==Scalar.Type.INT){
-                    return ((SList)left).get(right.getInt());
-                }
-                if((left instanceof SInt)&&(right instanceof SInt)){
-                    return Scalar.buildScalar(left.getInt()*right.getInt(),script);
-                } else {
-                    return Scalar.buildScalar(left.getFloat()*right.getFloat(),script);
-                }
-            }
-        });
         
         defaultLibrary.addBinding("/",20,new BinaryBinding(){
             public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
@@ -283,7 +367,22 @@ public class CrossLibrary {
             public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
                 return Scalar.buildScalar((float)Math.pow((double)left.getFloat(),(double)right.getFloat()),script);
             }
+        });*/
+
+        //Null/implicit token binding.
+        defaultLibrary.addBinding("<<notok>>",20,new BinaryBinding(){
+            public Scalar eval(Scalar left, Scalar right, Scalar.Type type){
+                if(left.type==Scalar.Type.LIST&&right.type==Scalar.Type.INT){
+                    return ((SList)left).get(right.getInt());
+                }
+                if((left instanceof SInt)&&(right instanceof SInt)){
+                    return Scalar.buildScalar(left.getInt()*right.getInt(),script);
+                } else {
+                    return Scalar.buildScalar(left.getFloat()*right.getFloat(),script);
+                }
+            }
         });
+
         //Tokens can be used to see if the tree is build correctly before a binding is written fo rit.
         //script.addToken("-", 10);
         //script.addToken("*", 20);
@@ -291,6 +390,8 @@ public class CrossLibrary {
         //script.addToken("**", 30);
         defaultLibrary.addBinding(".",500,true,false,true,new DotBinding());
     }
+
+    ArrayList<SType> types = new ArrayList<SType>();
     
     ArrayList<TokenBinding> bindings = new ArrayList<TokenBinding>();
     //would be nice to be able to use a HashMap, but the parser searches by the start of the token's string
@@ -301,7 +402,11 @@ public class CrossLibrary {
     /** Creates a new instance of Library */
     public CrossLibrary() {
     }
-    
+
+    public void addType(SType type) {
+        types.add(type);
+    }
+
     public void addBinding(String s,int pri,Binding b){
         Token t = new Token(s,pri);
         bindings.add(new TokenBinding(t,b));
@@ -336,6 +441,10 @@ public class CrossLibrary {
             //s.addBinding(t.str,t.priority,t.drop,t.unary,tb.b);
             s.addBinding(t,tb.b);
         }
+
+        for(SType t: types) {
+            s.addType(t);
+        }
     }
 }
 
@@ -345,5 +454,17 @@ class TokenBinding{
     TokenBinding(Token tok, Binding bin){
         t = tok;
         b = bin;
+    }
+
+    public Binding getBinding() {
+        return b;
+    }
+
+    public Token getToken() {
+        return t;
+    }
+
+    public SType getReturnType() {
+        return b.getReturnType();
     }
 }

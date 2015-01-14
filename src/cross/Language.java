@@ -17,11 +17,24 @@ public class Language {
     Hashtable<String,Token> tokenset = new Hashtable<String,Token>();
     Hashtable<String,ArrayList<Token>> tokens = new Hashtable<String,ArrayList<Token>>();
     Hashtable<String,Binding> bindings = new Hashtable<String,Binding>();
-    
+
+    ArrayList<SType> types = new ArrayList<SType>();
+
+    TSymbol symbolType = new TSymbol();
+    TOperator opType = new TOperator();
+
     /** Creates a new instance of Language */
     public Language() {
     }
-    
+
+    public void addType(SType type) {
+        types.add(type);
+    }
+
+    public ArrayList<SType> getTypes() {
+        return types;
+    }
+
     public void addToken(String s,int pri){
         addToken(s,pri,false,false);
     }
@@ -80,5 +93,12 @@ public class Language {
     public ArrayList<Token> getPossibleTokens(char c){
         return getPossibleTokens(c+"");
     }
-    
+
+    public SType getSymbolType() {
+        return symbolType;
+    }
+
+    public SType getOpType() {
+        return opType;
+    }
 }

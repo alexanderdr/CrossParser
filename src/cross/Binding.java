@@ -23,5 +23,12 @@ public class Binding {
     public Scalar exec(Node n,Evaluator e,Scalar.Type type){
         return new Scalar(script);
     }
+
+    public SType getReturnType() {
+        return TNull.instance;
+    }
+
+    public void registerOwningType(SType type) {
+    }
     
 }
